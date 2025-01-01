@@ -1,10 +1,10 @@
 
 
-//Generate PDF with the draw results (and, if button clicked, location results)
+//Generate PDF with the draw results (and, if button clicked, geolocation results)
 function generatePDF() {
     const { jsPDF } = window.jspdf;
 
-    // Get geolocalisation
+    // Get geolocation
     navigator.geolocation.getCurrentPosition(
         function (position) {
             const lat = position.coords.latitude;
@@ -14,11 +14,9 @@ function generatePDF() {
                 .then((response) => response.json())
                 .then((data) => {
                     const road = data.address.road || "Rue non trouvée";
-                    const city = data.address.city || data.address.town || data.address.village || "Non trouvée";
+                    const city = data.address.city || data.address.town || data.address.village || "Ville Non trouvée";
                     const country = data.address.country || "Pays non trouvé";
                     const postcode = data.address.postcode || "Code postal non trouvé";
-                    const county = data.address.county || "Non trouvée";
-                    const state = data.address.state || "Non trouvée";
 
                     // Get date time
                     const today = new Date();
@@ -42,8 +40,8 @@ function generatePDF() {
                     const margin = 10;
                     let yPosition = 10;
 
-                    // Add annotation in the top right corner for location details
-                    const locationDetails = `
+                    // Add annotation in the top right corner for geolocation details
+                    const geolocationDetails = `
                     Pays: ${country}
                     Ville: ${city}
                     Code postal: ${postcode}
@@ -55,7 +53,7 @@ function generatePDF() {
                     const annotationX = pageWidth - annotationWidth - 5;
                     const annotationY = 5;
 
-                    // Add annotation for location details
+                    // Add annotation for geolocation details
                     pdf.createAnnotation({
                     type: "text",
                     title: "Informations de localisation",
@@ -65,7 +63,7 @@ function generatePDF() {
                         w: annotationWidth,
                         h: 40
                     },
-                    contents: locationDetails,
+                    contents: geolocationDetails,
                     open: false
                     });
 
@@ -82,6 +80,12 @@ function generatePDF() {
 
                     pdf.setFontSize(13);
                     pdf.text("Conditions :", 10, yPosition);
+
+                    // Calculate the width of the text to draw the underline
+                    const resultTextWidth1 = pdf.getTextWidth("Conditions :");
+                    const underlineYPosition1 = yPosition + 1;
+                    pdf.setLineWidth(0.3);
+                    pdf.line(10, underlineYPosition1, 10 + resultTextWidth1, underlineYPosition1);
                     yPosition += 10;
 
                     // Lottery details
@@ -92,15 +96,22 @@ function generatePDF() {
                     yPosition += 10;
 
                     // New line
+                    pdf.setLineWidth(1);
                     pdf.line(10, yPosition, pageWidth - 10, yPosition);
                     yPosition += 10;
 
                     // Draw results
                     pdf.setFontSize(13);
                     pdf.text("Résultat du tirage au sort de la loterie :", 10, yPosition);
+
+                    // Calculate the width of the text to draw the underline
+                    const resultTextWidth2 = pdf.getTextWidth("Résultat du tirage au sort de la loterie :");
+                    const underlineYPosition2 = yPosition + 1;
+                    pdf.setLineWidth(0.3);
+                    pdf.line(10, underlineYPosition2, 10 + resultTextWidth2, underlineYPosition2);
                     yPosition += 10;
 
-                    // List of winners : if too many, add a new page
+                    // List of winners : if there are too many => add a new page
                     pdf.setFontSize(10);
                     winners.forEach((winner, index) => {
                         if (yPosition > pageHeight - margin) {
@@ -112,7 +123,7 @@ function generatePDF() {
                     });
 
 
-                    // If too many, add a new page
+                    // If there are too many => add a new page
                     if (yPosition > pageHeight - margin) {
                         pdf.addPage();
                         yPosition = margin;
@@ -132,12 +143,12 @@ function generatePDF() {
                     pdf.text(dateText, xPosition, yPosition);
                     yPosition += 10;
 
-                    // // Location informations
+                    // // Geolocation informations
                     // pdf.setFontSize(16);
                     // pdf.text("Informations de localisation :", 10, yPosition);
                     // yPosition += 10;
 
-                    // // Location details : if too many, add a new page
+                    // // Geolocation details : if too many, add a new page
                     // pdf.setFontSize(10);
                     // if (yPosition > pageHeight - margin) {
                     //     pdf.addPage();
